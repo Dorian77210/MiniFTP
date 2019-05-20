@@ -15,11 +15,6 @@
 #define BACKLOG 64
 
 int main(int argc, const char** argv) {
-    if(argc != 2) {
-        fprintf(stderr, "Usage : %s <host> \n", *argv);
-        exit(1);
-    }
-
     // initialization of the variables
     struct sockaddr_storage server, client;
     struct addrinfo* res, criteria, s;
@@ -29,7 +24,7 @@ int main(int argc, const char** argv) {
     configure_criteria(&criteria);
 
     // retrieve information with criteria
-    r = getaddrinfo(NULL, argv[1], &criteria, &res);
+    r = getaddrinfo(NULL, SERVICE, &criteria, &res);
     if(r != 0) {
         fprintf(stderr, "getaddrinfo fails : %s \n", gai_strerror(r));
         exit(2);
@@ -54,6 +49,16 @@ int main(int argc, const char** argv) {
     }
 
     printf("Yes\n");
+
+    while(1) {
+        memset(&client, 0, size);
+        newsfd = accept(sfd, (struct sockaddr*)&client, &temp);
+        if(newsfd == -1) {
+            perror("accept");
+            close(sfd);
+            exit(5);
+        }
+    }
 
     return EXIT_SUCCESS;
 }
