@@ -11,6 +11,7 @@
 
 #include "server.h"
 #include "common.h"
+#include "request.h"
 
 #define BACKLOG 64
 
@@ -19,6 +20,7 @@ int main(int argc, const char** argv) {
     struct sockaddr_storage server, client;
     struct addrinfo* res, criteria, s;
     int r, n, sfd, size = sizeof(struct sockaddr_storage), temp = size, newsfd;
+    client_session session;
 
     // configuration of the criteria
     configure_criteria(&criteria);
@@ -37,7 +39,7 @@ int main(int argc, const char** argv) {
         exit(3);
     }
 
-    // retrieve the server 
+    // retrieve the server
     memset(&server, 0, size);
     server = *((struct sockaddr_storage*)(s.ai_addr));
     freeaddrinfo(res);
@@ -48,8 +50,6 @@ int main(int argc, const char** argv) {
         exit(4);
     }
 
-    printf("Yes\n");
-
     while(1) {
         memset(&client, 0, size);
         newsfd = accept(sfd, (struct sockaddr*)&client, &temp);
@@ -57,6 +57,12 @@ int main(int argc, const char** argv) {
             perror("accept");
             close(sfd);
             exit(5);
+        }
+
+        if(!fork()) {
+            close(sfd);
+            printf("Receive a new client. Ready for the transmission of data \n");
+            session = exchange_key(newsfd, IS_SERVER_KIND);
         }
     }
 

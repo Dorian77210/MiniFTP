@@ -50,6 +50,7 @@ int main(int argc, const char** argv) {
     int r, n, sfd, size = sizeof(struct sockaddr_storage), temp = size;
     struct sockaddr_storage server;
     struct addrinfo* res, criteria, s;
+    client_session session;
 
     // configuration of the criteria
     configure_criteria(&criteria);
@@ -79,15 +80,10 @@ int main(int argc, const char** argv) {
         exit(8);
     }
 
-    // uint64 a, b;
-    // uint64 g = generator();
+    printf("Connected to the server. Ready for th transmission of data \n");
 
-    // uint64 k = create_part_key(g, &a);
-    // uint64 buf = create_part_key(g, &b);
-
-    // uint128 key = assembly_key(a, buf);
-    // printf("%lu ", (unsigned long)key);
-    // printf("%lu \n", (unsigned long)(key >> 64));
+    // exchange of the key
+    session = exchange_key(sfd, IS_CLIENT_KIND);
 
     return EXIT_SUCCESS;
 }

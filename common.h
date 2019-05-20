@@ -15,7 +15,7 @@ typedef unsigned long int uint64;
 
 typedef struct {
     uint32* session_key;
-} session;
+} client_session;
 
 void configure_criteria(struct addrinfo* criteria);
 

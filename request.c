@@ -1,17 +1,18 @@
 #include "request.h"
 
-#define IS_SERVER_KIND 1
-#define IS_CLIENT_KIND 2
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
 
 void send_request(request* r) {
     
 }
 
-session exchange_key(int sfd, int kind) {
+client_session exchange_key(int sfd, int kind) {
     int size = sizeof(uint64);
     uint64 g = generator();
-    uint64* power, buffer;
-    session s;
+    uint64 power, buffer;
+    client_session session;
     int n;
 
     // generate the part of key
@@ -52,8 +53,10 @@ session exchange_key(int sfd, int kind) {
         exit(4);
     }
 
-    uint128 key = assembly_key(power, buffer);
-    s.session_key = key;
+    uint128 raw_key = assembly_key(power, buffer);
+    uint32* key = (uint32*)&raw_key;
 
-    return s;
-}   
+    session.session_key = key;
+
+    return session;
+}
