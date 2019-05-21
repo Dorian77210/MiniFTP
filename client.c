@@ -1,6 +1,16 @@
 #include <stdlib.h>
+#include <sys/types.h> 
+#include <sys/stat.h> 
+#include <unistd.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <string.h>
 
 #include "client.h"
+#include "request.h"
+#include "common.h"
+#include "answer.h"
+
 
 int try_socket(struct addrinfo** res, struct addrinfo* s) {
     int sfd;
@@ -16,3 +26,54 @@ int try_socket(struct addrinfo** res, struct addrinfo* s) {
 
     return sfd;
 }
+
+// void proceed_get_request() {
+
+// }
+
+void proceed_put_request(client_session session, const char* localfilename, const char* destfilename) {
+    request req;
+    answer ans;
+    struct stat stats;
+    uint32 block[2]; // block
+    size_t bytes_read;
+    int dest_size = strlen(destfilename), n;
+
+    req.kind = REQUEST_PUT;
+
+    // retrieve the size of the file
+    int local_fd = open(localfilename, O_RDONLY);
+    if(local_fd == -1) {
+        perror("open");
+        exit(1);
+    }
+
+    // int dest_fd = open(destfilename, O_TRUNC | O_CREAT | O_WRONLY);
+    // if(dest_fd == -1) {
+    //     perror("open");
+    //     exit(2);
+    // }
+
+    int filesize = fstat(local_fd, &stats);
+    if(filesize == -1) {
+        perror("fstat");
+        exit(3);
+    }
+
+    req.nbbytes = filesize;
+    // put the filename in the structure
+    strncpy(req.path, destfilename, dest_size);
+
+    // encrypt and send the request
+    crypt_request(session.session_key, &req);
+    ans = send_request(session.sfd, &req);
+
+    // decrypt the answer
+
+    close(local_fd);
+    // close(dest_fd);
+}
+
+// void proceed_dir_request() {
+
+// }

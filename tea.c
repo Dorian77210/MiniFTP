@@ -1,5 +1,7 @@
 #include "tea.h"
 
+#include <stdio.h>
+
 #define TEA_MAX_ITERATIONS 32
 #define DELTA 0x9e3779b9
 

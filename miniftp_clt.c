@@ -21,7 +21,6 @@ int main(int argc, const char** argv) {
     srand(time(NULL));
 
     int request_kind;
-    request client_request;
 
     // retrieve the good request
     if(!strcmp(argv[2], GET_REQUEST_STRING)) {
@@ -44,8 +43,6 @@ int main(int argc, const char** argv) {
         fprintf(stderr, "Bad request type value. Please choose among \"get\", \"put\" or \"dir\" \n");
         exit(5);
     }
-
-    client_request.kind = request_kind;
 
     int r, n, sfd, size = sizeof(struct sockaddr_storage), temp = size;
     struct sockaddr_storage server;
@@ -83,7 +80,18 @@ int main(int argc, const char** argv) {
     printf("Connected to the server. Ready for th transmission of data \n");
 
     // exchange of the key
+    memset(&session, 0, sizeof(client_session));
     session = exchange_key(sfd, IS_CLIENT_KIND);
+
+    // proceed the request
+    if(request_kind == REQUEST_PUT) {
+        proceed_put_request(session, argv[3], argv[4]);
+    } else if(request_kind == REQUEST_GET) {
+
+    } else if(request_kind == REQUEST_DIR) {
+
+    }
+
 
     return EXIT_SUCCESS;
 }

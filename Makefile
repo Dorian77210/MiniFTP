@@ -15,12 +15,16 @@ OFILES = ${BIN_DIR}tea.o \
 		 ${BIN_DIR}diffie_hellman.o \
 		 ${BIN_DIR}request.o \
 		 ${BIN_DIR}common.o \
+		 ${BIN_DIR}answer.o \
 
 
 but : ${EXE}
 
+${BIN_DIR}answer.o : answer.c answer.h ${BIN_DIR}request.o ${BIN_DIR}common.o
+	${CC} -c answer.c -o ${BIN_DIR}answer.o
+
 # binary code
-${BIN_DIR}client.o : client.h client.c
+${BIN_DIR}client.o : client.h client.c ${BIN_DIR}common.o ${BIN_DIR}request.o answer.h
 	${CC} -c client.c -o ${BIN_DIR}client.o
 
 ${BIN_DIR}common.o : common.h common.c
@@ -29,7 +33,7 @@ ${BIN_DIR}common.o : common.h common.c
 ${BIN_DIR}diffie_hellman.o : diffie_hellman.h diffie_hellman.c ${BIN_DIR}common.o
 	${CC} -c diffie_hellman.c -o ${BIN_DIR}diffie_hellman.o
 
-${BIN_DIR}request.o : request.h request.c ${BIN_DIR}tea.o ${BIN_DIR}diffie_hellman.o ${BIN_DIR}common.o
+${BIN_DIR}request.o : request.h answer.h request.c ${BIN_DIR}tea.o ${BIN_DIR}common.o
 	${CC} -c request.c -o ${BIN_DIR}request.o
 
 ${BIN_DIR}tea.o : tea.h tea.c ${BIN_DIR}common.o

@@ -50,3 +50,10 @@ uint128 assembly_key(uint64 a, uint64 b) {
 
     return (key | key << 64);
 }
+
+void print_key(uint128 key) {
+    uint32* raw_key = (uint32*)&key;
+    for(int i = 0; i < 4; i++) {
+        printf("%u \n", raw_key[i]);
+    }
+}

@@ -19,8 +19,9 @@ int main(int argc, const char** argv) {
     // initialization of the variables
     struct sockaddr_storage server, client;
     struct addrinfo* res, criteria, s;
-    int r, n, sfd, size = sizeof(struct sockaddr_storage), temp = size, newsfd;
-    client_session session;
+    int r, n, sfd, size = sizeof(struct sockaddr_storage), temp = size;
+    request req;
+    answer ans;
 
     // configuration of the criteria
     configure_criteria(&criteria);
@@ -52,17 +53,37 @@ int main(int argc, const char** argv) {
 
     while(1) {
         memset(&client, 0, size);
-        newsfd = accept(sfd, (struct sockaddr*)&client, &temp);
+        int newsfd = accept(sfd, (struct sockaddr*)&client, &temp);
         if(newsfd == -1) {
             perror("accept");
             close(sfd);
-            exit(5);
+            return EXIT_FAILURE;
         }
 
         if(!fork()) {
             close(sfd);
             printf("Receive a new client. Ready for the transmission of data \n");
+            client_session session;
+
+            // memset on variables
+            memset(&session, 0, sizeof(session));
+            memset(&ans, 0, sizeof(answer));
+            memset(&req, 0, sizeof(request));
+
+            // retrieve the session
             session = exchange_key(newsfd, IS_SERVER_KIND);
+
+            // receive the request of the client
+            n = recv(newsfd, &req, sizeof(request), 0x0);
+            if(n == -1) {
+                perror("recv");
+                exit(6);
+            }
+
+            decrypt_request(session.session_key, &req);
+
+            // create the answer and send the answer to the client
+            create_answer(req, &ans);
         }
     }
 
