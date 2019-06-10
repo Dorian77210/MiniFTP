@@ -13,6 +13,7 @@
 typedef unsigned int uint32;
 typedef unsigned __int128 uint128;
 typedef unsigned long int uint64;
+typedef uint64 block_t;
 
 typedef struct {
     uint128 session_key;

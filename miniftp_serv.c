@@ -97,6 +97,8 @@ int main(int argc, const char** argv) {
                 }
             }
         }
+
+        break;
     }
 
     return EXIT_SUCCESS;

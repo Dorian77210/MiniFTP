@@ -24,7 +24,7 @@ ${BIN_DIR}answer.o : answer.c answer.h ${BIN_DIR}request.o ${BIN_DIR}common.o
 	${CC} -c answer.c -o ${BIN_DIR}answer.o
 
 # binary code
-${BIN_DIR}client.o : client.h client.c ${BIN_DIR}common.o ${BIN_DIR}request.o answer.h
+${BIN_DIR}client.o : client.h client.c ${BIN_DIR}common.o ${BIN_DIR}request.o ${BIN_DIR}answer.o ${BIN_DIR}tea.o
 	${CC} -c client.c -o ${BIN_DIR}client.o
 
 ${BIN_DIR}common.o : common.h common.c
@@ -45,7 +45,7 @@ ${BIN_DIR}miniftp_clt.o : miniftp_clt.c ${BIN_DIR}tea.o ${BIN_DIR}common.o ${BIN
 ${BIN_DIR}miniftp_serv.o : miniftp_serv.c ${BIN_DIR}server.o ${BIN_DIR}common.o ${BIN_DIR}request.o
 	${CC} -c miniftp_serv.c -o ${BIN_DIR}miniftp_serv.o
 
-${BIN_DIR}server.o : server.h server.c ${BIN_DIR}common.o ${BIN_DIR}request.o
+${BIN_DIR}server.o : server.h server.c ${BIN_DIR}common.o ${BIN_DIR}request.o ${BIN_DIR}answer.o
 	${CC} -c server.c -o ${BIN_DIR}server.o
 
 

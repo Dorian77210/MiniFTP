@@ -26,3 +26,17 @@ void decrypt(uint32* v, uint32* k) {
     }                                              /* end cycle */
     v[0] = v0; v[1] = v1;
 }
+
+void encrypt_block(block_t* block, uint128 k) {
+    uint32* raw_key = (uint32*)&k;
+    uint32* data = (uint32*)block;
+
+    encrypt(data, raw_key);
+}
+
+void decrypt_block(block_t* block, uint128 k) {
+    uint32* raw_key = (uint32*)&k;
+    uint32* data = (uint32*)block;
+
+    decrypt(data, raw_key);
+}
