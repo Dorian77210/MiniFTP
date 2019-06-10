@@ -45,7 +45,7 @@ ${BIN_DIR}miniftp_clt.o : miniftp_clt.c ${BIN_DIR}tea.o ${BIN_DIR}common.o ${BIN
 ${BIN_DIR}miniftp_serv.o : miniftp_serv.c ${BIN_DIR}server.o ${BIN_DIR}common.o ${BIN_DIR}request.o
 	${CC} -c miniftp_serv.c -o ${BIN_DIR}miniftp_serv.o
 
-${BIN_DIR}server.o : server.h server.c
+${BIN_DIR}server.o : server.h server.c ${BIN_DIR}common.o ${BIN_DIR}request.o
 	${CC} -c server.c -o ${BIN_DIR}server.o
 
 

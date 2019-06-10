@@ -77,7 +77,7 @@ int main(int argc, const char** argv) {
         exit(8);
     }
 
-    printf("Connected to the server. Ready for th transmission of data \n");
+    printf("Connected to the server. Ready for the transmission of data \n");
 
     // exchange of the key
     memset(&session, 0, sizeof(client_session));

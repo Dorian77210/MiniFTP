@@ -27,10 +27,6 @@ int try_socket(struct addrinfo** res, struct addrinfo* s) {
     return sfd;
 }
 
-// void proceed_get_request() {
-
-// }
-
 void proceed_put_request(client_session session, const char* localfilename, const char* destfilename) {
     request req;
     answer ans;
@@ -67,13 +63,23 @@ void proceed_put_request(client_session session, const char* localfilename, cons
     // encrypt and send the request
     crypt_request(session.session_key, &req);
     ans = send_request(session.sfd, &req);
+    // decrypt the answer
+    decrypt_answer(session.session_key, &ans);
+
+    close(local_fd);
+
+    if(ans.ack == ANSWER_ERROR) {
+        fprintf(stderr, "Answer Error");
+    } else if(ans.ack == ANSWER_OK) {
+        // will send the file
+        printf("Answer ok \n");
+        // send the file to the server
+    } else if(ans.ack == ANSWER_UNKNOWN) {
+        fprintf(stderr, "request unknown \n");
+        exit(1);
+    }
 
     // decrypt the answer
 
-    close(local_fd);
     // close(dest_fd);
 }
-
-// void proceed_dir_request() {
-
-// }

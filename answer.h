@@ -9,5 +9,12 @@
 #include "common.h"
 
 void create_answer(request req, answer* ans);
+void create_put_answer(request req, answer* ans);
+void create_get_answer(request req, answer* ans);
+void create_dir_answer(request req, answer* ans);
+void send_answer(int sfd, answer* ans);
+
+void crypt_answer(uint128 key, answer* ans);
+void decrypt_answer(uint128 key, answer* ans);
 
 #endif

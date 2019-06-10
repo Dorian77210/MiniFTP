@@ -10,6 +10,8 @@
 #include <sys/fcntl.h>
 
 #include "server.h"
+#include "request.h"
+
 
 int socket_bind(struct addrinfo** res, struct addrinfo* s) {
     struct addrinfo* resp = *res;
@@ -33,4 +35,8 @@ int socket_bind(struct addrinfo** res, struct addrinfo* s) {
     }
 
     return -1;
+}
+
+void proceed_put_request(client_session session, request req) {
+    printf("Proceed put request \n");
 }

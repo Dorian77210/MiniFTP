@@ -81,9 +81,21 @@ int main(int argc, const char** argv) {
             }
 
             decrypt_request(session.session_key, &req);
-
             // create the answer and send the answer to the client
             create_answer(req, &ans);
+            int ack = ans.ack;
+
+            // crypt the answer
+            crypt_answer(session.session_key, &ans);
+            // send the answer to to the client
+            send_answer(session.sfd, &ans);
+            
+            if(ack == ANSWER_OK) {
+                // proceed the request
+                if(req.kind == REQUEST_PUT) {
+                    proceed_put_request(session, req);
+                }
+            }
         }
     }
 
