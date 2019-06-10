@@ -34,5 +34,5 @@ typedef struct {
 } request;
 
 void configure_criteria(struct addrinfo* criteria);
-
+int is_big_endian();
 #endif

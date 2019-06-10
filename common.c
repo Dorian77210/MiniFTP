@@ -15,3 +15,11 @@ void configure_criteria(struct addrinfo* criteria) {
     criteria->ai_canonname = NULL;
     criteria->ai_next = NULL;
 }
+
+// returns 1, if architecture
+//    is little endian, 0 in case of big endian.
+int is_big_endian() {
+    unsigned int x = 1;
+    char *c = (char*) &x;
+    return (int)*c;
+}

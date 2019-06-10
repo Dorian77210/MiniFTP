@@ -14,22 +14,27 @@
 #include "tea.h"
 #include "common.h"
 
-
-int socket_bind(struct addrinfo** res, struct addrinfo* s) {
-    struct addrinfo* resp = *res;
+int socket_bind(struct addrinfo **res, struct addrinfo *s)
+{
+    struct addrinfo *resp = *res;
     int sfd;
 
-    while(resp != NULL) {
+    while (resp != NULL)
+    {
         // try to bind this element as a server
         sfd = socket(resp->ai_family, resp->ai_socktype, resp->ai_protocol);
-        if(sfd != -1) {
+        if (sfd != -1)
+        {
             // try to bind
             int bind_resp = bind(sfd, resp->ai_addr, resp->ai_addrlen);
-            if(bind_resp != -1) {
+            if (bind_resp != -1)
+            {
                 *s = *resp;
                 return sfd;
             }
-        } else {
+        }
+        else
+        {
             return -1;
         }
 
@@ -39,49 +44,67 @@ int socket_bind(struct addrinfo** res, struct addrinfo* s) {
     return -1;
 }
 
-void proceed_put_request(client_session session, request req) {
+void proceed_put_request(client_session session, request req)
+{
     printf("Proceed put request \n");
 
     // open the file
     int fd = open(req.path, O_WRONLY);
-    if(fd == -1) {
+    if (fd == -1)
+    {
         perror("open");
         exit(1);
     }
 
     int filesize = req.nbbytes;
 
-    int blocks_count = filesize / BLOCK_SIZE, n;
+    int blocks_count = filesize / BLOCK_SIZE, n, m;
     block_t block;
     int size = sizeof(block);
+    char *buffer = NULL;
 
-    for(int i = 0; i < blocks_count; i++) {
+    for (int i = 0; i < blocks_count; i++)
+    {
         memset(&block, 0, size);
         n = recv(session.sfd, &block, size, 0x0);
-        if(n == -1) {
+        if (n == -1)
+        {
             fprintf(stderr, "Error when receiving data \n");
             perror("recv");
         }
 
         decrypt_block(&block, session.session_key);
-        
-        if(i == (blocks_count - 1)) {
+        buffer = (char *)&block;
+
+        if (i == (blocks_count - 1))
+        {
             // last block, retrieve the padding
-            block_t padding = block & 0xFF;
+            int padding = block & 0xFF;
             int bytes_to_write = BLOCK_SIZE - padding;
-            if(bytes_to_write != 0) {
-                printf("Extra bytes with padding\n");
-                n = write(fd, &block, bytes_to_write);
-                if(n == -1) {
-                    perror("write");
-                    close(fd);
-                    return;
+            if (is_big_endian())
+            {
+                if (bytes_to_write != 0)
+                {
+                    printf("Write extra bytes by padding \n");
+                    m = write(fd, buffer + padding, bytes_to_write);
+                    if (m == -1)
+                    {
+                        perror("write");
+                        close(fd);
+                        return;
+                    }
                 }
             }
-
-        } else {
-            n = write(fd, &block, n);
-            if(n == -1) {
+            else
+            {
+                // TODO, no implemented yet
+            }
+        }
+        else
+        {
+            m = write(fd, &block, n);
+            if (m == -1)
+            {
                 perror("write");
                 close(fd);
                 return;

@@ -49,12 +49,6 @@ void proceed_put_request(client_session session, const char *localfilename, cons
         exit(1);
     }
 
-    // int dest_fd = open(destfilename, O_TRUNC | O_CREAT | O_WRONLY);
-    // if(dest_fd == -1) {
-    //     perror("open");
-    //     exit(2);
-    // }
-
     int s = fstat(local_fd, &stats);
     if (s == -1)
     {
@@ -98,11 +92,10 @@ void proceed_put_request(client_session session, const char *localfilename, cons
         fprintf(stderr, "request unknown \n");
         exit(1);
     }
-
-    // decrypt the answer
-
-    // close(dest_fd);
 }
+
+
+// privates functions
 
 int send_file(client_session session, const char *filename, int filesize)
 {
@@ -156,7 +149,7 @@ int send_file(client_session session, const char *filename, int filesize)
             else
             {
                 int shift = BLOCK_SIZE - n;
-                block = block << (shift * 4);
+                block = block << (shift * 8);
                 block |= shift;
 
                 encrypt_block(&block, session.session_key);
