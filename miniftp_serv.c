@@ -83,7 +83,7 @@ int main(int argc, const char** argv) {
             decrypt_request(session.session_key, &req);
             // create the answer and send the answer to the client
             create_answer(req, &ans);
-            int ack = ans.ack;
+            int ack = ans.ack; // save the ack
 
             // crypt the answer
             crypt_answer(session.session_key, &ans);
@@ -94,11 +94,16 @@ int main(int argc, const char** argv) {
                 // proceed the request
                 if(req.kind == REQUEST_PUT) {
                     proceed_put_request(session, req);
+                } else if(req.kind == REQUEST_DIR) {
+                    proceed_dir_request(session, req);
+                } else if(req.kind == REQUEST_GET) {
+                    proceed_get_request(session, req);
                 }
             }
-        }
 
-        break;
+            close(session.sfd);
+            exit(0);
+        }
     }
 
     return EXIT_SUCCESS;

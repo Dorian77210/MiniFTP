@@ -10,6 +10,7 @@
 
 int try_socket(struct addrinfo** res, struct addrinfo* s);
 void proceed_put_request(client_session session, const char* localfilename, const char* destfilename);
-int send_file(client_session session, const char* filename, int filesize);
+void proceed_get_request(client_session session, const char* destfilename, const char* localfilename);
+void proceed_dir_request(client_session session, const char* dir);
 
 #endif

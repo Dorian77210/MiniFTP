@@ -34,5 +34,8 @@ typedef struct {
 } request;
 
 void configure_criteria(struct addrinfo* criteria);
-int is_big_endian();
+int is_little_endian();
+int store_file(client_session session, const char* filename, int filesize);
+int send_file(client_session session, const char* filename);
+
 #endif

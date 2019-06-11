@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "diffie_hellman.h"
 #include "common.h"
@@ -87,11 +88,12 @@ int main(int argc, const char** argv) {
     if(request_kind == REQUEST_PUT) {
         proceed_put_request(session, argv[3], argv[4]);
     } else if(request_kind == REQUEST_GET) {
-
+        proceed_get_request(session, argv[3], argv[4]);
     } else if(request_kind == REQUEST_DIR) {
-
+        proceed_dir_request(session, argv[3]);
     }
 
+    close(session.sfd);
 
     return EXIT_SUCCESS;
 }

@@ -30,6 +30,37 @@ int try_socket(struct addrinfo **res, struct addrinfo *s)
     return sfd;
 }
 
+void proceed_get_request(client_session session, const char* destfilename, const char* localfilename) {
+    request req;
+    answer ans;
+
+    req.kind = REQUEST_GET;
+    int dest_size = strlen(destfilename);
+
+    // set the path of the wanted file
+    memset(req.path, 0, MAXPATH);
+    strncpy(req.path, destfilename, dest_size);
+
+    crypt_request(session.session_key, &req);
+    ans = send_request(session.sfd, &req);
+
+    // decrypt the answer
+    decrypt_answer(session.session_key, &ans);
+
+    if(ans.ack == ANSWER_ERROR) {
+        fprintf(stderr, "Answer error for the get request \n");
+    } else if(ans.ack == ANSWER_UNKNOWN) {
+        fprintf(stderr, "Answer unknown for the get request \n");
+    } else if(ans.ack == ANSWER_OK) {
+        printf("Ready for the get request \n");
+        if(!store_file(session, localfilename, ans.nbbytes)) {
+            fprintf(stderr, "Error when store the file on the server \n");
+        }
+
+        printf("End of the get request \n");
+    }
+}
+
 void proceed_put_request(client_session session, const char *localfilename, const char *destfilename)
 {
     request req;
@@ -83,90 +114,51 @@ void proceed_put_request(client_session session, const char *localfilename, cons
     else if (ans.ack == ANSWER_OK)
     {
         // will send the file
-        printf("Answer ok \n");
+        printf("Answer ok for put request\n");
         // send the file to the server
-        send_file(session, localfilename, stats.st_size);
+        if(!send_file(session, localfilename)) {
+            fprintf(stderr, "Error when send the file to the server \n");
+        }
     }
     else if (ans.ack == ANSWER_UNKNOWN)
     {
-        fprintf(stderr, "request unknown \n");
+        fprintf(stderr, "request unknown for put request\n");
         exit(1);
     }
 }
 
+void proceed_dir_request(client_session session, const char* dir) {
+    request req;
+    answer ans;
 
-// privates functions
+    int dest_size = strlen(dir);
+    req.kind = REQUEST_DIR;
 
-int send_file(client_session session, const char *filename, int filesize)
-{
-    int fd = open(filename, O_RDONLY);
-    if (fd == -1)
+    // put the filename in the structure
+    memset(req.path, 0, MAXPATH);
+    strncpy(req.path, dir, dest_size);
+
+    // encrypt and send the request
+
+    crypt_request(session.session_key, &req);
+    ans = send_request(session.sfd, &req);
+    // decrypt the answer
+    decrypt_answer(session.session_key, &ans);
+
+    if (ans.ack == ANSWER_ERROR)
     {
-        perror("open");
-        return 0;
+        fprintf(stderr, "Answer Error during dir request\n");
     }
-
-    int blocks_count = (filesize / BLOCK_SIZE), n;
-    block_t block;
-    int size = sizeof(block_t);
-
-    int add_block = (filesize % BLOCK_SIZE) == 0;
-    blocks_count += add_block ? 0 : 1;
-
-    for (int i = 0; i < blocks_count; i++)
+    else if (ans.ack == ANSWER_OK)
     {
-        memset(&block, 0, size);
-        n = read(fd, &block, size);
-
-        if (n == -1)
-        {
-            perror("read");
-            close(fd);
-            return 0;
-        }
-
-        if (i == (blocks_count - 1))
-        {
-            if (add_block)
-            {   
-                encrypt_block(&block, session.session_key);
-                // send the block
-                n = send(session.sfd, &block, BLOCK_SIZE, 0x0);
-                if(n == -1) {
-                    perror("send");
-                }
-
-                // add a last block
-                memset(&block, 0, size);
-                block = 0x8;
-                encrypt_block(&block, session.session_key);
-
-                n = send(session.sfd, &block, BLOCK_SIZE, 0x0);
-                if(n == -1) {
-                    perror("send");
-                }
-            }
-            else
-            {
-                int shift = BLOCK_SIZE - n;
-                block = block << (shift * 8);
-                block |= shift;
-
-                encrypt_block(&block, session.session_key);
-                // send the block
-                n = send(session.sfd, &block, BLOCK_SIZE, 0x0);
-                if(n == -1) {
-                    perror("send");
-                }
-            }
-        } else {
-            encrypt_block(&block, session.session_key);
-            n = send(session.sfd, &block, n, 0x0);
-            if(n == -1) {
-                perror("send");
-            }
-        }
+        // will send the file
+        printf("Answer ok for dir request\n");
+        // receive ls from the server
+        // receive_ls(session);
     }
-
-    close(fd);
+    else if (ans.ack == ANSWER_UNKNOWN)
+    {
+        fprintf(stderr, "request unknown for dir request\n");
+        exit(1);
+    }
 }

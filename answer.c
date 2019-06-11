@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <dirent.h>
+#include <sys/stat.h>
 
 #include "answer.h"
 #include "request.h"
@@ -39,11 +41,42 @@ void create_put_answer(request req, answer* ans) {
 }
 
 void create_get_answer(request req, answer* ans) {
+    // open the wanted file 
+    int fd = open(req.path, O_RDONLY);
+    if(fd == -1) {
+        ans->ack = ANSWER_ERROR;
+        ans->errnum = errno;
+    } else {
+        // retrieve the size of the file
+        struct stat stats;
+        int s = fstat(fd, &stats);
+        if(s == -1) {
+            perror("fstat");
+            ans->ack = ANSWER_ERROR;
+            ans->errnum = errno;
+        } else {
+            ans->ack = ANSWER_OK;
+            int filesize = stats.st_size;
+            // size with the future padding
+            filesize += !(stats.st_size % BLOCK_SIZE) ? BLOCK_SIZE : BLOCK_SIZE - (stats.st_size % BLOCK_SIZE);
+            ans->nbbytes = filesize;
+        }
 
+        close(fd);
+    }
 }
 
 void create_dir_answer(request req, answer* ans) {
+    // try to open the folder
+    DIR* dir = opendir(req.path);
 
+    if(!dir) {
+        ans->ack = ANSWER_ERROR;
+        ans->errnum = errno;
+    } else {
+        ans->ack = ANSWER_OK;
+        closedir(dir);
+    }
 }
 
 void send_answer(int sfd, answer* ans) {
