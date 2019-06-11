@@ -10,7 +10,6 @@
 #include <sys/fcntl.h>
 #include <sys/stat.h>
 
-
 #include "server.h"
 #include "request.h"
 #include "tea.h"
@@ -46,10 +45,12 @@ int socket_bind(struct addrinfo **res, struct addrinfo *s)
     return -1;
 }
 
-void proceed_get_request(client_session session, request req) {
+void proceed_get_request(client_session session, request req)
+{
     printf("Proceed get request \n");
 
-    if(!send_file(session, req.path)) {
+    if (!send_file(session, req.path))
+    {
         fprintf(stderr, "Error when send the file \n");
     }
 
@@ -60,13 +61,83 @@ void proceed_put_request(client_session session, request req)
 {
     printf("Proceed put request \n");
 
-    if(!store_file(session, req.path, req.nbbytes)) {
+    if (!store_file(session, req.path, req.nbbytes))
+    {
         fprintf(stderr, "Error when store the file %s\n", req.path);
     }
 
     printf("End of the transmission of the put request \n");
 }
 
-void proceed_dir_request(client_session session, request req) {
-    
+void proceed_dir_request(client_session session, request req)
+{
+    int fds[2];
+    // create the command
+    char command[MAX_COMMAND_SIZE];
+    memset(command, 0, MAX_COMMAND_SIZE);
+
+    snprintf(command, MAX_COMMAND_SIZE, "ls -l %s", req.path);
+
+    int p = pipe(fds);
+    if (p == -1)
+    {
+        perror("pipe");
+        exit(1);
+    }
+
+    // create the pipe and replace the stdout with the pipe
+    dup2(fds[1], 1);
+
+    system(command);
+
+    block_t *block;
+    char *buffer = (char *)malloc(9 * sizeof(char));
+    if (!buffer)
+    {
+        fprintf(stderr, "Error when mallocing \n");
+        exit(1);
+    }
+
+    int size = sizeof(block_t), n;
+
+    while (1)
+    {
+        memset(&block, 0, size);
+        memset(buffer, 0, 9);
+        n = read(fds[0], buffer, size);
+        if (n == -1)
+        {
+            perror("read");
+            break;
+        }
+
+        if (n > 0)
+        {
+
+            block = (block_t *)buffer;
+            encrypt_block(block, session.session_key);
+
+            n = send(session.sfd, buffer, 9, 0x0);
+            if (n == -1)
+            {
+                perror("send");
+            }
+        }
+        else
+        {
+            // send empty packet
+            n = send(session.sfd, NULL, 0, 0x0);
+            if (n == -1)
+            {
+                perror("send");
+            }
+
+            break;
+        }
+    }
+
+    free(buffer);
+
+    close(fds[0]);
+    close(fds[1]);
 }

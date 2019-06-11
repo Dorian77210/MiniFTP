@@ -75,8 +75,9 @@ void create_dir_answer(request req, answer* ans) {
         ans->errnum = errno;
     } else {
         ans->ack = ANSWER_OK;
-        closedir(dir);
     }
+
+    closedir(dir);
 }
 
 void send_answer(int sfd, answer* ans) {

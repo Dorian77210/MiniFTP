@@ -8,6 +8,7 @@
 #include <netdb.h>
 #include <sys/types.h>
 #include <sys/fcntl.h>
+#include <signal.h>
 
 #include "server.h"
 #include "common.h"
@@ -15,11 +16,17 @@
 
 #define BACKLOG 64
 
+int sfd; // global sfd to prevent the SIGINT
+
+void handler(int sig) {
+    close(sfd);
+}
+
 int main(int argc, const char** argv) {
     // initialization of the variables
     struct sockaddr_storage server, client;
     struct addrinfo* res, criteria, s;
-    int r, n, sfd, size = sizeof(struct sockaddr_storage), temp = size;
+    int r, n, size = sizeof(struct sockaddr_storage), temp = size;
     request req;
     answer ans;
 
@@ -50,6 +57,9 @@ int main(int argc, const char** argv) {
         perror("listen");
         exit(4);
     }
+
+    // prevent the SIGINT
+    signal(SIGINT, handler);
 
     while(1) {
         memset(&client, 0, size);

@@ -119,6 +119,8 @@ void proceed_put_request(client_session session, const char *localfilename, cons
         if(!send_file(session, localfilename)) {
             fprintf(stderr, "Error when send the file to the server \n");
         }
+
+        printf("End of the put request \n");
     }
     else if (ans.ack == ANSWER_UNKNOWN)
     {
@@ -154,11 +156,54 @@ void proceed_dir_request(client_session session, const char* dir) {
         // will send the file
         printf("Answer ok for dir request\n");
         // receive ls from the server
-        // receive_ls(session);
+        if(!receive_ls(session)) {
+            fprintf(stderr, "Error when receiving the ls command \n");
+        }
+
+        printf("End of the dir request \n");
     }
     else if (ans.ack == ANSWER_UNKNOWN)
     {
         fprintf(stderr, "request unknown for dir request\n");
         exit(1);
     }
+}
+
+int receive_ls(client_session session) {
+    char* buffer = (char*)malloc(9 * sizeof(char));
+    if(!buffer) {
+        fprintf(stderr, "Malloc error \n");
+        return 0;
+    }
+
+    block_t* block;
+    int n, size = sizeof(block_t);
+
+    while(1) {
+        memset(&block, 0, size);
+        memset(buffer, 0, 9);
+        n = recv(session.sfd, buffer, 9, 0x0);
+        if(n == -1) {
+            perror("recv");
+            return 0;
+        }
+
+        if(!n) {
+            // end of the transmission
+            break;
+        }
+
+        block = (block_t*)buffer;
+        decrypt_block(block, session.session_key);
+
+        for(int i = n; n < 9; i++) {
+            buffer[i] = '\0';
+        }
+
+        printf("%s", buffer);
+        fflush(stdout);
+    }
+
+    free(buffer);
+    return 1;
 }

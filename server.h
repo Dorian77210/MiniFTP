@@ -1,7 +1,7 @@
 #ifndef SERVER_H
 #define SERVER_H
 
-#define TEMP_FILE "temp"
+#define MAX_COMMAND_SIZE 512
 
 #include "common.h"
 
