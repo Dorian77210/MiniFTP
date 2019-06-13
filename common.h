@@ -5,9 +5,9 @@
 #include <netdb.h>
 #include <sys/socket.h>
 
-#define PORT 55554
+#define PORT 55555
 #define BLOCK_SIZE 8
-#define SERVICE "55554"
+#define SERVICE "55555"
 #define MAXPATH 256
 
 typedef unsigned int uint32;

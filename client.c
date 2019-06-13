@@ -170,7 +170,8 @@ void proceed_dir_request(client_session session, const char* dir) {
 }
 
 int receive_ls(client_session session) {
-    char* buffer = (char*)malloc(9 * sizeof(char));
+    int buffer_size = 9;
+    char* buffer = (char*)malloc(buffer_size * sizeof(char));
     if(!buffer) {
         fprintf(stderr, "Malloc error \n");
         return 0;
@@ -181,27 +182,26 @@ int receive_ls(client_session session) {
 
     while(1) {
         memset(&block, 0, size);
-        memset(buffer, 0, 9);
-        n = recv(session.sfd, buffer, 9, 0x0);
+        memset(buffer, 0, buffer_size);
+        n = recv(session.sfd, buffer, buffer_size, 0x0);
+
         if(n == -1) {
             perror("recv");
             return 0;
         }
 
-        if(!n) {
-            // end of the transmission
-            break;
-        }
+        
 
         block = (block_t*)buffer;
         decrypt_block(block, session.session_key);
 
-        for(int i = n; n < 9; i++) {
-            buffer[i] = '\0';
-        }
-
         printf("%s", buffer);
         fflush(stdout);
+
+        if(strlen(buffer) != BLOCK_SIZE) {
+            // end of the transmission
+            break;
+        }
     }
 
     free(buffer);

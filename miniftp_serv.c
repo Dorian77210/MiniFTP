@@ -20,6 +20,7 @@ int sfd; // global sfd to prevent the SIGINT
 
 void handler(int sig) {
     close(sfd);
+    exit(0);
 }
 
 int main(int argc, const char** argv) {

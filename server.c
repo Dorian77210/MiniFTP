@@ -72,11 +72,6 @@ void proceed_put_request(client_session session, request req)
 void proceed_dir_request(client_session session, request req)
 {
     int fds[2];
-    // create the command
-    char command[MAX_COMMAND_SIZE];
-    memset(command, 0, MAX_COMMAND_SIZE);
-
-    snprintf(command, MAX_COMMAND_SIZE, "ls -l %s", req.path);
 
     int p = pipe(fds);
     if (p == -1)
@@ -85,10 +80,14 @@ void proceed_dir_request(client_session session, request req)
         exit(1);
     }
 
-    // create the pipe and replace the stdout with the pipe
-    dup2(fds[1], 1);
-
-    system(command);
+    if(!fork()) {
+        // create the pipe and replace the stdout with the pipe
+        dup2(fds[1], 1);
+        if(execl("/bin/ls", "ls", "-l", req.path, NULL) == -1) {
+            fprintf(stderr, "Error when execl ls command \n");
+            exit(1);
+        }
+    }
 
     block_t *block;
     char *buffer = (char *)malloc(9 * sizeof(char));
@@ -98,12 +97,12 @@ void proceed_dir_request(client_session session, request req)
         exit(1);
     }
 
-    int size = sizeof(block_t), n;
+    int size = sizeof(block_t), n, buffer_size = 9;
 
     while (1)
     {
         memset(&block, 0, size);
-        memset(buffer, 0, 9);
+        memset(buffer, 0, buffer_size);
         n = read(fds[0], buffer, size);
         if (n == -1)
         {
@@ -111,17 +110,27 @@ void proceed_dir_request(client_session session, request req)
             break;
         }
 
+        printf("%d \n", n);
+
         if (n > 0)
         {
-
+            int m = n;
             block = (block_t *)buffer;
+
+            for(int i = n ; i < buffer_size; i++) {
+                buffer[i] = '\0';
+            }
+
             encrypt_block(block, session.session_key);
 
-            n = send(session.sfd, buffer, 9, 0x0);
+            n = send(session.sfd, buffer, buffer_size, 0x0);
             if (n == -1)
             {
                 perror("send");
             }
+
+            if(m != size) break;
+
         }
         else
         {
@@ -140,4 +149,6 @@ void proceed_dir_request(client_session session, request req)
 
     close(fds[0]);
     close(fds[1]);
+
+    printf("End of the dir request \n");
 }
