@@ -83,11 +83,14 @@ void proceed_dir_request(client_session session, request req)
     if(!fork()) {
         // create the pipe and replace the stdout with the pipe
         dup2(fds[1], 1);
+        close(fds[0]);
         if(execl("/bin/ls", "ls", "-l", req.path, NULL) == -1) {
             fprintf(stderr, "Error when execl ls command \n");
             exit(1);
         }
     }
+
+    close(fds[1]);
 
     block_t *block;
     char *buffer = (char *)malloc(9 * sizeof(char));
@@ -110,8 +113,6 @@ void proceed_dir_request(client_session session, request req)
             break;
         }
 
-        printf("%d \n", n);
-
         if (n > 0)
         {
             int m = n;
@@ -129,11 +130,10 @@ void proceed_dir_request(client_session session, request req)
                 perror("send");
             }
 
-            if(m != size) break;
-
         }
         else
         {
+            printf("Send empty packet \n");
             // send empty packet
             n = send(session.sfd, NULL, 0, 0x0);
             if (n == -1)

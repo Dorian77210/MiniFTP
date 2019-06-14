@@ -77,6 +77,7 @@ void proceed_put_request(client_session session, const char *localfilename, cons
     if (local_fd == -1)
     {
         perror("open");
+        close(session.sfd);
         exit(1);
     }
 
@@ -84,6 +85,7 @@ void proceed_put_request(client_session session, const char *localfilename, cons
     if (s == -1)
     {
         perror("fstat");
+        close(session.sfd);
         exit(3);
     }
 
@@ -109,7 +111,7 @@ void proceed_put_request(client_session session, const char *localfilename, cons
 
     if (ans.ack == ANSWER_ERROR)
     {
-        fprintf(stderr, "Answer Error");
+        fprintf(stderr, "Answer Error \n %s \n", strerror(ans.errnum));
     }
     else if (ans.ack == ANSWER_OK)
     {
@@ -125,6 +127,7 @@ void proceed_put_request(client_session session, const char *localfilename, cons
     else if (ans.ack == ANSWER_UNKNOWN)
     {
         fprintf(stderr, "request unknown for put request\n");
+        close(session.sfd);
         exit(1);
     }
 }
@@ -149,7 +152,7 @@ void proceed_dir_request(client_session session, const char* dir) {
 
     if (ans.ack == ANSWER_ERROR)
     {
-        fprintf(stderr, "Answer Error during dir request\n");
+        fprintf(stderr, "Answer Error during dir request\n %s \n", strerror(ans.errnum));
     }
     else if (ans.ack == ANSWER_OK)
     {
@@ -165,6 +168,7 @@ void proceed_dir_request(client_session session, const char* dir) {
     else if (ans.ack == ANSWER_UNKNOWN)
     {
         fprintf(stderr, "request unknown for dir request\n");
+        close(session.sfd);
         exit(1);
     }
 }
@@ -188,9 +192,9 @@ int receive_ls(client_session session) {
         if(n == -1) {
             perror("recv");
             return 0;
+        } else if(!n) {
+            break; // empty packet
         }
-
-        
 
         block = (block_t*)buffer;
         decrypt_block(block, session.session_key);
