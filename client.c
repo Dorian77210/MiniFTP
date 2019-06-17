@@ -192,8 +192,6 @@ int receive_ls(client_session session) {
         if(n == -1) {
             perror("recv");
             return 0;
-        } else if(!n) {
-            break; // empty packet
         }
 
         block = (block_t*)buffer;
@@ -201,11 +199,6 @@ int receive_ls(client_session session) {
 
         printf("%s", buffer);
         fflush(stdout);
-
-        if(strlen(buffer) != BLOCK_SIZE) {
-            // end of the transmission
-            break;
-        }
     }
 
     free(buffer);

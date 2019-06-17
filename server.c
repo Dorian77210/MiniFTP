@@ -130,17 +130,7 @@ void proceed_dir_request(client_session session, request req)
                 perror("send");
             }
 
-        }
-        else
-        {
-            printf("Send empty packet \n");
-            // send empty packet
-            n = send(session.sfd, NULL, 0, 0x0);
-            if (n == -1)
-            {
-                perror("send");
-            }
-
+        } else {
             break;
         }
     }

@@ -113,6 +113,8 @@ int main(int argc, const char** argv) {
             }
 
             close(session.sfd);
+
+            printf("End of connection \n");
             exit(0);
         }
     }
