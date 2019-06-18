@@ -194,6 +194,8 @@ int receive_ls(client_session session) {
             return 0;
         }
 
+        if(!n) break;
+
         block = (block_t*)buffer;
         decrypt_block(block, session.session_key);
 

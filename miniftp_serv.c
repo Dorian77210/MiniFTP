@@ -71,7 +71,9 @@ int main(int argc, const char** argv) {
             return EXIT_FAILURE;
         }
 
-        if(!fork()) {
+        pid_t pid = fork();
+
+        if(!pid) {
             close(sfd);
             printf("Receive a new client. Ready for the transmission of data \n");
             client_session session;
@@ -116,6 +118,10 @@ int main(int argc, const char** argv) {
 
             printf("End of connection \n");
             exit(0);
+        } else if(pid < -1) {
+            perror("fork");
+        } else {
+            close(newsfd);
         }
     }
 
